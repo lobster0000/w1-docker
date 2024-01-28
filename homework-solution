@@ -1,0 +1,40 @@
+
+--Q3
+SELECT COUNT(*) AS trip_count
+FROM green_taxi_trips
+WHERE DATE(lpep_pickup_datetime) = '2019-09-18'
+  AND DATE(lpep_dropoff_datetime) = '2019-09-18';
+--Q4
+SELECT DATE(lpep_pickup_datetime) AS pickup_day, MAX(trip_distance) AS max_trip_distance
+FROM green_taxi_trips
+GROUP BY DATE(lpep_pickup_datetime)
+ORDER BY max_trip_distance DESC
+LIMIT 1;
+--Q5
+SELECT z."Borough", SUM(g."total_amount") AS total_amount_sum
+FROM green_taxi_trips g
+JOIN zones z ON g."PULocationID" = z."LocationID"
+WHERE DATE(g.lpep_pickup_datetime) = '2019-09-18'
+  AND z."Borough" != 'Unknown'
+GROUP BY z."Borough"
+HAVING SUM(g."total_amount") > 50000
+ORDER BY total_amount_sum DESC
+LIMIT 3;
+
+--Q6
+
+-- SELECT * from zones
+-- SELECT "LocationID" FROM zones WHERE "Bor" = 'Astoria'
+WITH AstoriaPickups AS (
+    SELECT *
+    FROM green_taxi_trips
+    WHERE DATE(lpep_pickup_datetime) >= '2019-09-01'
+      AND DATE(lpep_pickup_datetime) <= '2019-09-30'
+      AND "PULocationID" IN (SELECT "LocationID" FROM zones WHERE "Zone" = 'Astoria')
+)
+SELECT z_drop."Zone" AS drop_off_zone, MAX(g.tip_amount) AS max_tip_amount
+FROM AstoriaPickups g
+JOIN zones z_drop ON g."DOLocationID" = z_drop."LocationID"
+GROUP BY z_drop."Zone"
+ORDER BY max_tip_amount DESC
+LIMIT 1;
